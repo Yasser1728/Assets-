@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assets.pi | Digital Asset Management</title>
+    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+    <style>
+        :root {
+            --gold: #d4af37;
+            --dark-bg: #0a0a0a;
+            --card-bg: #161616;
+            --text-gray: #b0b0b0;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--dark-bg);
+            color: white;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            padding: 40px;
+            background: var(--card-bg);
+            border: 1px solid var(--gold);
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(212, 175, 55, 0.15);
+            max-width: 380px;
+            width: 90%;
+        }
+
+        .logo {
+            font-size: 3rem;
+            color: var(--gold);
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        .description {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            margin: 15px 0 30px;
+            line-height: 1.6;
+        }
+
+        .btn-primary {
+            background-color: var(--gold);
+            color: black;
+            padding: 14px 28px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: bold;
+            display: block;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        .btn-primary:hover {
+            background-color: white;
+            box-shadow: 0 0 20px var(--gold);
+        }
+
+        .status {
+            margin-top: 20px;
+            font-size: 0.75rem;
+            color: var(--gold);
+            opacity: 0.8;
+            letter-spacing:
