@@ -1,21 +1,18 @@
 const db = require('../database/connection');
 const accountTypes = require('./accountProvision.types');
-const rules = require('./accountProvision.rules');
 
 class AccountProvisionService {
 
-  async provisionUserAccounts(userId) {
+  async provisionUserAccounts(walletId) {
 
-    rules.validateProvision(accountTypes);
+    const values = accountTypes
+      .map(type => `(${walletId}, '${type}')`)
+      .join(',');
 
-    for (const type of accountTypes) {
-
-      await db.query(`
-        INSERT INTO ledger_accounts (user_id, account_type)
-        VALUES ($1,$2)
-      `, [userId, type]);
-
-    }
+    await db.query(`
+      INSERT INTO ledger_accounts (wallet_id, account_type)
+      VALUES ${values}
+    `);
 
   }
 
