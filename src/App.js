@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import './App.css';
 
 function App() {
   const [status, setStatus] = useState("Ready to finalize...");
@@ -7,7 +6,6 @@ function App() {
   const Pi = window.Pi;
 
   useEffect(() => {
-    // تهيئة الـ SDK
     if (Pi) {
       Pi.init({ version: "2.0", sandbox: true });
     }
@@ -15,7 +13,6 @@ function App() {
 
   const handleAction = async () => {
     if (!isAuth) {
-      // المرحلة 1: الاتصال
       try {
         setStatus("Connecting...");
         const auth = await Pi.authenticate(['username', 'payments'], (payment) => {
@@ -27,7 +24,6 @@ function App() {
         setStatus("Auth Error: " + err.message);
       }
     } else {
-      // المرحلة 2: الدفع (حل مشكلة Expired)
       try {
         setStatus("Preparing payment...");
         await Pi.createPayment({
@@ -52,24 +48,42 @@ function App() {
     }
   };
 
+  const containerStyle = {
+    backgroundColor: '#000',
+    color: '#ffcc00',
+    height: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    fontFamily: 'Arial, sans-serif'
+  };
+
+  const boxStyle = {
+    border: '2px solid #ffcc00',
+    padding: '40px',
+    borderRadius: '20px',
+    textAlign: 'center',
+    maxWidth: '320px'
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <div style={{ border: '2px solid #ffcc00', padding: '40px', borderRadius: '20px' }}>
-          <h1 style={{ color: '#ffcc00' }}>ASSETS.PI</h1>
-          <p>Final Step: Process Transaction</p>
+    <div style={containerStyle}>
+        <div style={boxStyle}>
+          <h1 style={{ fontSize: '2.5em', margin: '0 0 10px 0' }}>ASSETS.PI</h1>
+          <p style={{ color: '#fff' }}>Final Step: Process Transaction</p>
           <button 
             onClick={handleAction}
             style={{
               backgroundColor: '#ffcc00', color: '#000', padding: '15px 30px',
-              fontSize: '1.2em', fontWeight: 'bold', borderRadius: '10px', width: '100%'
+              fontSize: '1.2em', fontWeight: 'bold', borderRadius: '10px', 
+              width: '100%', border: 'none', cursor: 'pointer'
             }}
           >
             {!isAuth ? "1. Connect Wallet" : "2. Pay 1 Test-Pi"}
           </button>
           <div style={{ marginTop: '20px', color: '#aaa' }}>{status}</div>
         </div>
-      </header>
     </div>
   );
 }
