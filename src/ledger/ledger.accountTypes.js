@@ -1,0 +1,7 @@
+module.exports = {
+  MAIN: 'MAIN_BALANCE',
+  ESCROW: 'ESCROW',
+  FEES: 'FEES',
+  REWARDS: 'REWARDS',
+  WITHDRAW_LOCK: 'WITHDRAW_LOCK'
+};
