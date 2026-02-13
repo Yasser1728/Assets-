@@ -1,79 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Assets Pi App</title>
-    <!-- Pi SDK - مهم جدًا -->
+    <title>Assets Pi App - Final Step</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-      :root { --gold: #d4af37; --dark-bg: #0a0a0a; --card-bg: #161616; --text-gray: #b0b0b0; }
-      body { margin: 0; background-color: var(--dark-bg); color: white; font-family: sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-      .container { text-align: center; padding: 40px; background: var(--card-bg); border: 1px solid var(--gold); border-radius: 24px; max-width: 380px; width: 90%; }
-      .logo { font-size: 3rem; color: var(--gold); font-weight: bold; margin-bottom: 10px; }
-      h1 { font-size: 1.5rem; letter-spacing: 2px; text-transform: uppercase; }
-      .btn-primary { background-color: var(--gold); color: black; padding: 14px 28px; border-radius: 12px; font-weight: bold; display: block; margin-top: 30px; cursor: pointer; border: none; width: 100%; }
-      #status { margin-top: 20px; color: var(--text-gray); font-size: 1rem; }
-      #username { color: var(--gold); font-weight: bold; }
+        :root { --gold: #d4af37; --dark-bg: #0a0a0a; --card-bg: #161616; }
+        body { margin: 0; background-color: var(--dark-bg); color: white; font-family: sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+        .container { text-align: center; padding: 40px; background: var(--card-bg); border: 1px solid var(--gold); border-radius: 24px; max-width: 380px; width: 90%; }
+        .btn { padding: 14px 28px; border-radius: 12px; font-weight: bold; cursor: pointer; border: none; width: 100%; margin-top: 15px; }
+        .btn-primary { background-color: var(--gold); color: black; }
+        .btn-pay { background-color: #4caf50; color: white; display: none; }
+        #status { margin-top: 20px; font-size: 0.9rem; color: #b0b0b0; }
     </style>
-  </head>
-  <body>
-    <div id="root">
-      <div class="container">
-        <div class="logo">π</div>
-        <h1>ASSETS</h1>
-        <p style="color: var(--text-gray);">The Future of Digital Asset Management</p>
+</head>
+<body>
+    <div class="container">
+        <h1 style="color: var(--gold);">ASSETS.PI</h1>
+        <p>Final Step: Process Transaction</p>
         
-        <button id="connectBtn" class="btn-primary">Connect with Pi Wallet</button>
+        <button id="connectBtn" class="btn btn-primary">1. Connect Wallet</button>
+        <button id="payBtn" class="btn btn-pay">2. Pay 1 Test-Pi</button>
         
-        <div id="status">
-          <p id="message">Waiting for connection...</p>
-          <p id="username"></p>
-        </div>
-      </div>
+        <div id="status">Ready to finalize...</div>
     </div>
 
     <script>
-      // تهيئة Pi SDK - في الـ Sandbox (dev) خلي sandbox: true
-      // لما تنتقل للـ Production هتغيره لـ false
-      Pi.init({ version: "2.0", sandbox: true });
+        Pi.init({ version: "2.0", sandbox: true });
 
-      const connectBtn = document.getElementById('connectBtn');
-      const messageEl = document.getElementById('message');
-      const usernameEl = document.getElementById('username');
+        const connectBtn = document.getElementById('connectBtn');
+        const payBtn = document.getElementById('payBtn');
+        const statusEl = document.getElementById('status');
 
-      connectBtn.addEventListener('click', async () => {
-        try {
-          connectBtn.disabled = true;
-          messageEl.textContent = 'Connecting...';
+        // 1. الاتصال بالمحفظة
+        connectBtn.addEventListener('click', async () => {
+            try {
+                const scopes = ['username', 'payments'];
+                const auth = await Pi.authenticate(scopes, (payment) => {
+                    console.log("Incomplete payment found", payment);
+                });
+                statusEl.textContent = `Welcome, ${auth.user.username}! Now press Pay.`;
+                connectBtn.style.display = 'none';
+                payBtn.style.display = 'block';
+            } catch (err) {
+                statusEl.textContent = "Connection failed.";
+            }
+        });
 
-          // Scopes: username عشان تجيب الاسم، payments لو هتعمل دفعات لاحقًا
-          const scopes = ['username', 'payments'];
-
-          // دالة للتعامل مع أي دفعات معلقة (مهمة للـ payments)
-          function onIncompletePaymentFound(payment) {
-            console.log('Incomplete payment found:', payment);
-            // هنا تقدر تكمل أو تلغي الدفعة لو عايز
-          }
-
-          const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
-
-          // نجاح → جيب الـ username وعرضه
-          const username = auth.user.username;
-          usernameEl.textContent = `Welcome, ${username}!`;
-          messageEl.textContent = 'Connected successfully!';
-          connectBtn.textContent = 'Connected';
-          connectBtn.style.backgroundColor = '#4caf50'; // green للدلالة على النجاح
-
-          // احفظ الـ accessToken لو هتحتاجه للـ backend (مثلاً للـ payments)
-          console.log('Access Token:', auth.accessToken);
-
-        } catch (error) {
-          console.error('Authentication error:', error);
-          messageEl.textContent = 'Connection failed: ' + (error.message || 'Unknown error');
-          connectBtn.disabled = false;
-        }
-      });
+        // 2. إجراء معاملة الدفع (الخطوة 10)
+        payBtn.addEventListener('click', async () => {
+            try {
+                statusEl.textContent = "Opening Wallet...";
+                const payment = await Pi.createPayment({
+                    amount: 1.0,
+                    memo: "Test payment for Assets App validation",
+                    metadata: { assetId: "test-123" },
+                }, {
+                    onReadyForServerApproval: (paymentId) => {
+                        console.log("Payment ID:", paymentId);
+                        // في التجربة، مجرد الوصول هنا يعني النجاح تقريبًا
+                        statusEl.textContent = "Payment processing...";
+                    },
+                    onReadyForServerCompletion: (paymentId, txid) => {
+                        statusEl.textContent = "Transaction Successful! Check Checklist.";
+                        payBtn.disabled = true;
+                    },
+                    onCancel: (paymentId) => { statusEl.textContent = "Payment Cancelled."; },
+                    onError: (error, payment) => { statusEl.textContent = "Error occurred."; }
+                });
+            } catch (err) {
+                statusEl.textContent = "Payment failed to start.";
+            }
+        });
     </script>
-  </body>
+</body>
 </html>
