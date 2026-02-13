@@ -1,108 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Assets Pi App</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-    <style>
-        body {
-            background-color: #000;
-            color: #ffcc00;
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            text-align: center;
-        }
-        .container {
-            border: 2px solid #ffcc00;
-            padding: 40px;
-            border-radius: 20px;
-            width: 80%;
-            max-width: 400px;
-        }
-        h1 { font-size: 2.5em; margin-bottom: 10px; }
-        p { color: #fff; margin-bottom: 30px; }
-        button {
-            background-color: #ffcc00;
-            color: #000;
-            border: none;
-            padding: 15px 30px;
-            font-size: 1.2em;
-            font-weight: bold;
-            border-radius: 10px;
-            cursor: pointer;
-            width: 100%;
-        }
-        button:disabled { background-color: #555; cursor: not-allowed; }
-        #status { margin-top: 20px; color: #aaa; font-size: 0.9em; }
-    </style>
-</head>
-<body>
-
-    <div class="container">
-        <h1>ASSETS.PI</h1>
-        <p>Final Step: Process Transaction</p>
-        
-        <button id="mainBtn">1. Connect Wallet</button>
-        <div id="status">Ready to finalize...</div>
-    </div>
-
-    <script>
-        // تهيئة الـ SDK بوضع الـ Sandbox
-        Pi.init({ version: "2.0", sandbox: true });
-
-        const mainBtn = document.getElementById('mainBtn');
-        const statusEl = document.getElementById('status');
-        let userAuth = null;
-
-        mainBtn.addEventListener('click', async () => {
-            // المرحلة الأولى: الاتصال بالمحفظة
-            if (!userAuth) {
-                try {
-                    statusEl.textContent = "Connecting...";
-                    userAuth = await Pi.authenticate(['username', 'payments'], (payment) => {
-                        console.log("Incomplete payment found", payment);
-                    });
-                    
-                    statusEl.textContent = "Connected as: " + userAuth.user.username;
-                    mainBtn.textContent = "2. Pay 1 Test-Pi";
-                } catch (err) {
-                    statusEl.textContent = "Auth Error: " + err.message;
-                }
-            } 
-            // المرحلة الثانية: تنفيذ الدفع
-            else {
-                try {
-                    statusEl.textContent = "Preparing payment...";
-                    const payment = await Pi.createPayment({
-                        amount: 1.0,
-                        memo: "Finalizing Step 10 - Assets App",
-                        metadata: { step: "10" },
-                    }, {
-                        onReadyForServerApproval: (paymentId) => {
-                            // الموافقة الفورية لتجنب رسالة Expired
-                            console.log("Approving paymentId:", paymentId);
-                            statusEl.textContent = "Approving payment...";
-                            // ملاحظة: في الـ Sandbox، هذا الجزء يتم معالجته داخلياً
-                        },
-                        onReadyForServerCompletion: (paymentId, txid) => {
-                            statusEl.textContent = "Payment Successful!";
-                            mainBtn.textContent = "Step 10 Completed ✅";
-                            mainBtn.disabled = true;
-                            alert("Success! Transaction ID: " + txid);
-                        },
-                        onCancel: () => { statusEl.textContent = "Payment Cancelled."; },
-                        onError: (error) => { statusEl.textContent = "Error: " + error.message; }
-                    });
-                } catch (err) {
-                    statusEl.textContent = "Payment failed to start.";
-                }
-            }
-        });
-    </script>
-</body>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    </body>
 </html>
