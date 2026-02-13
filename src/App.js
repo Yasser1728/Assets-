@@ -1,55 +1,75 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import './App.css';
 
 function App() {
-  useEffect(() => {
-    // التأكد من تحميل Pi SDK وتهيئته لوضع الاختبار (Sandbox)
-    if (window.Pi) {
-      window.Pi.init({ version: "2.0", sandbox: true });
-      console.log("Pi SDK is initialized in Sandbox mode");
-    }
-  }, []);
+  const [status, setStatus] = useState("Ready to finalize...");
+  const [isAuth, setIsAuth] = useState(false);
+  const Pi = window.Pi;
 
-  const handleConnect = () => {
-    // وظيفة وهمية للتجربة داخل متصفح Pi
-    alert("Connecting to Pi Wallet...");
+  useEffect(() => {
+    // تهيئة الـ SDK
+    if (Pi) {
+      Pi.init({ version: "2.0", sandbox: true });
+    }
+  }, [Pi]);
+
+  const handleAction = async () => {
+    if (!isAuth) {
+      // المرحلة 1: الاتصال
+      try {
+        setStatus("Connecting...");
+        const auth = await Pi.authenticate(['username', 'payments'], (payment) => {
+          console.log("Incomplete payment", payment);
+        });
+        setIsAuth(true);
+        setStatus(`Welcome, ${auth.user.username}`);
+      } catch (err) {
+        setStatus("Auth Error: " + err.message);
+      }
+    } else {
+      // المرحلة 2: الدفع (حل مشكلة Expired)
+      try {
+        setStatus("Preparing payment...");
+        await Pi.createPayment({
+          amount: 1.0,
+          memo: "Finalizing Assets App Step 10",
+          metadata: { step: "10" },
+        }, {
+          onReadyForServerApproval: (paymentId) => {
+            console.log("Auto-approving:", paymentId);
+            setStatus("Approving on Testnet...");
+          },
+          onReadyForServerCompletion: (paymentId, txid) => {
+            setStatus("Success! Step 10 Completed ✅");
+            alert("Transaction Successful! ID: " + txid);
+          },
+          onCancel: () => setStatus("Payment Cancelled."),
+          onError: (error) => setStatus("Error: " + error.message)
+        });
+      } catch (err) {
+        setStatus("Payment failed to start.");
+      }
+    }
   };
 
   return (
-    <div style={{ 
-      textAlign: 'center', 
-      backgroundColor: '#0a0a0a', 
-      color: '#d4af37', 
-      height: '100vh', 
-      display: 'flex', 
-      flexDirection: 'column', 
-      justifyContent: 'center',
-      fontFamily: 'sans-serif' 
-    }}>
-      <div style={{ padding: '20px', border: '2px solid #d4af37', borderRadius: '15px', margin: 'auto', maxWidth: '300px' }}>
-        <h1 style={{ fontSize: '2.5rem', marginBottom: '10px' }}>ASSETS.PI</h1>
-        <p style={{ color: '#b0b0b0', fontSize: '1rem' }}>The Future of Digital Asset Management</p>
-        
-        <button 
-          onClick={handleConnect}
-          style={{ 
-            backgroundColor: '#d4af37', 
-            color: 'black', 
-            border: 'none', 
-            padding: '12px 25px', 
-            borderRadius: '8px', 
-            fontWeight: 'bold', 
-            marginTop: '20px',
-            cursor: 'pointer',
-            width: '100%'
-          }}
-        >
-          Connect Wallet
-        </button>
-        
-        <p style={{ marginTop: '15px', fontSize: '0.8rem', opacity: 0.7 }}>
-          Status: Sandbox Mode Active
-        </p>
-      </div>
+    <div className="App">
+      <header className="App-header">
+        <div style={{ border: '2px solid #ffcc00', padding: '40px', borderRadius: '20px' }}>
+          <h1 style={{ color: '#ffcc00' }}>ASSETS.PI</h1>
+          <p>Final Step: Process Transaction</p>
+          <button 
+            onClick={handleAction}
+            style={{
+              backgroundColor: '#ffcc00', color: '#000', padding: '15px 30px',
+              fontSize: '1.2em', fontWeight: 'bold', borderRadius: '10px', width: '100%'
+            }}
+          >
+            {!isAuth ? "1. Connect Wallet" : "2. Pay 1 Test-Pi"}
+          </button>
+          <div style={{ marginTop: '20px', color: '#aaa' }}>{status}</div>
+        </div>
+      </header>
     </div>
   );
 }
