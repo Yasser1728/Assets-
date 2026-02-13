@@ -1,12 +1,10 @@
 // ============================================================
 //  ASSETS.PI — /api/payments/complete.js
 //  Vercel Serverless Function
-//  يستقبل paymentId + txid ويرسل Complete لـ Pi Network API
 // ============================================================
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
 
-  // ── CORS Headers ──────────────────────────────────────────
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -16,23 +14,25 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // ── Validate Input ────────────────────────────────────────
   const { paymentId, txid } = req.body;
 
   if (!paymentId || !txid) {
     return res.status(400).json({ error: "paymentId and txid are required" });
   }
 
-  // ── Pi API Key ────────────────────────────────────────────
   const PI_API_KEY = process.env.PI_API_KEY;
 
   if (!PI_API_KEY) {
-    console.error("PI_API_KEY is not set in environment variables");
-    return res.status(500).json({ error: "Server configuration error" });
+    console.error("❌ PI_API_KEY missing");
+    return res.status(500).json({ error: "PI_API_KEY not configured" });
   }
 
-  // ── Call Pi Network API ───────────────────────────────────
   try {
+    console.log(`⏳ Completing payment: ${paymentId} | txid: ${txid}`);
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+
     const piResponse = await fetch(
       `https://api.minepi.com/v2/payments/${paymentId}/complete`,
       {
@@ -41,33 +41,25 @@ export default async function handler(req, res) {
           "Authorization": `Key ${PI_API_KEY}`,
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ txid })
+        body: JSON.stringify({ txid }),
+        signal: controller.signal
       }
     );
+
+    clearTimeout(timeout);
 
     const data = await piResponse.json();
 
     if (!piResponse.ok) {
-      console.error("Pi API complete error:", data);
-      return res.status(piResponse.status).json({
-        error: "Pi API error",
-        details: data
-      });
+      console.error("❌ Pi API complete error:", JSON.stringify(data));
+      return res.status(piResponse.status).json({ error: "Pi API error", details: data });
     }
 
-    console.log(`✅ Payment completed: ${paymentId} | txid: ${txid}`);
-    return res.status(200).json({
-      success: true,
-      paymentId,
-      txid,
-      data
-    });
+    console.log(`✅ Completed: ${paymentId}`);
+    return res.status(200).json({ success: true, paymentId, txid, data });
 
   } catch (err) {
-    console.error("Complete handler error:", err);
-    return res.status(500).json({
-      error: "Internal server error",
-      message: err.message
-    });
+    console.error("❌ Complete error:", err.message);
+    return res.status(500).json({ error: err.message });
   }
 }
